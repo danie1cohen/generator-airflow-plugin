@@ -20,29 +20,29 @@ describe('generator-airflow-plugin:app', () => {
       });
   });
 
-  it('creates files', () => {
-    assert.file(['test_plugin.py']);
+  //it('creates files', () => {
+  //  assert.file(['plugins/test_plugin.py']);
+  //  assert.file(['tests/test_test_plugin.py']);
+  //});
+
+  it('creates a well formed plugin name', () => {
+    let gen = helpers.createGenerator(generatorDir, []);
+    let pluginName = gen._generatePluginName('test');
+    expect(pluginName).toEqual('test_plugin');
   });
 
-  describe('sets name values', () => {
-    it('creates a well formed plugin name', () => {
-      let gen = helpers.createGenerator(generatorDir, []);
-      expect(gen.generatePluginName('test'), 'test_plugin');
-    });
+  it("doesn't mess with an already well formed plugin name", () => {
+    let gen = helpers.createGenerator(generatorDir, []);
+    expect(gen._generatePluginName('test_plugin')).toBe('test_plugin');
+  });
 
-    it("doesn't mess with an already well formed plugin name", () => {
-      let gen = helpers.createGenerator(generatorDir, []);
-      expect(gen.generatePluginName('test_plugin'), 'test_plugin');
-    });
+  it("creates a python object name in camelcase", () => {
+    let gen = helpers.createGenerator(generatorDir, []);
+    expect(gen._generateObjectName('test plugin thing_stuff')).toBe('TestThingStuff');
+  });
 
-    it("creates a python object name in camelcase", () => {
-      let gen = helpers.createGenerator(generatorDir, []);
-      expect(gen.generateObjectName('test plugin thing_stuff'), 'TestThingStuff');
-    });
-
-    it("creates a human readable display name", () => {
-      let gen = helpers.createGenerator(generatorDir, []);
-      expect(gen.generateObjectName('test_plugin thing_stuff'), 'Test Thing Stuff');
-    });
-  })
+  it("creates a human readable display name", () => {
+    let gen = helpers.createGenerator(generatorDir, []);
+    expect(gen._generateDisplayName('test_plugin thing_stuff')).toBe('Test Thing Stuff');
+  });
 });

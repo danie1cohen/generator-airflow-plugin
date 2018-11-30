@@ -4,17 +4,17 @@ const chalk = require('chalk');
 const yosay = require('yosay');
 
 module.exports = class extends Generator {
-  prompting() {.
+  prompting() {
     this.log(
-      yosay(`Beep borp beep I am ${chalk.red('Airflow Plugin')} generator!`)
+      yosay(`Beep borp beep I am your handy ${chalk.red('Airflow Plugin')} generator!`)
     );
 
     const prompts = [
       {
         type: 'input',
         name: 'pluginName',
-        message: 'What are we gonna call this thing?'
-        default: 'example'
+        message: 'What are we gonna call this thing?',
+        default: 'example_plugin'
       },
       {
         type: 'confirm',
@@ -51,59 +51,68 @@ module.exports = class extends Generator {
         name: 'createMenuLink',
         message: 'Would you like to create an airflow menu link?',
         default: false
-      },
+      }
     ];
 
-    generateObjectName(name) {
-      var objectName = sanitizePluginName(name).split(" ").map(
-          w => w.charAt(0).toUpperCase() + w.slice(1)
-      ).join("");
-      return objectName
-    }
-
-    generateDisplayName(name) {
-      var displayName = sanitizePluginName(name).split(" ").map(
-          w => w.charAt(0).toUpperCase() + w.slice(1)
-      ).join(" ");
-      return displayName
-    }
-
-    generatePluginName(name) {
-      var pluginName = name.replace(' ', '_');
-
-      if ( !!pluginName.inclues('plugin') ) {
-        pluginName = pluginName + '_plugin'
-      return pluginName
-    }
-
-    sanitizePluginName(pluginName) {
-      var name = pluginName.replace('_', ' ')
-      if ( name.includes('plugin') ) {
-        name = name.replace('plugin', '').trim()
-      }
-      return name
-    }
-
     return this.prompt(prompts).then(props => {
-      props.pluginObjectName = generateObjectName(props.pluginName);
-      props.pluginDisplayName = generateDisplayName(props.pluginName);
-      props.pluginName = generatePluginName(props.pluginName);
+      props.pluginObjectName = this._generateObjectName(props.pluginName);
+      props.pluginDisplayName = this._generateDisplayName(props.pluginName);
+      props.pluginName = this._generatePluginName(props.pluginName);
       this.props = props;
     });
   }
 
+  _generateObjectName(name) {
+    var objectName = this._sanitizePluginName(name).split(" ").map(
+        w => w.charAt(0).toUpperCase() + w.slice(1)
+    ).join("");
+
+    return objectName
+  }
+
+  _generateDisplayName(name) {
+    var displayName = this._sanitizePluginName(name).split(" ").map(
+        w => w.charAt(0).toUpperCase() + w.slice(1)
+    ).join(" ");
+
+    return displayName
+  }
+
+  _generatePluginName(name) {
+    var pluginName = name.split(' ').join('_');
+
+    if ( !pluginName.includes('plugin') ) {
+      pluginName = pluginName + '_plugin';
+    }
+
+    return pluginName
+  }
+
+  _sanitizePluginName(pluginName) {
+    var name = pluginName.split('_').join(' ');
+
+    if ( name.includes('plugin') ) {
+      name = name.replace('plugin', '').trim();
+    }
+    name = name.split('  ').join(' ');
+
+    return name
+  }
+
   writing() {
-    this.fs.copy(
+    this.fs.copyTpl(
       this.templatePath('plugin.py'),
-      this.destinationPath('plugins/' + this.props.pluginName + '.py')
+      this.destinationPath('plugins/' + this.props.pluginName + '.py'),
+      this.props,
     );
-    this.fs.copy(
+    this.fs.copyTpl(
       this.templatePath('tests.py'),
-      this.destinationPath('tests/test_' + this.props.pluginName + '.py')
+      this.destinationPath('tests/test_' + this.props.pluginName + '.py'),
+      this.props
     );
   }
 
   install() {
-    this.installDependencies();
+    // this.installDependencies();
   }
 };
